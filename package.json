@@ -1,0 +1,40 @@
+{
+  "name": "turkiye-commerce-starter",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "node scripts/start.mjs",
+    "lint": "eslint",
+    "setup": "node scripts/setup.mjs",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "node --conditions=react-server --import tsx --test tests/*.test.ts",
+    "check": "npm run lint && npm run typecheck && npm test",
+    "test:e2e": "playwright test",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "lucide-react": "1.34.0",
+    "next": "16.3.4",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "server-only": "0.0.1",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1",
+    "@types/node": "22.19.19",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.4",
+    "prettier": "3.6.2",
+    "tsx": "4.20.6",
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "license": "MIT"
+}
