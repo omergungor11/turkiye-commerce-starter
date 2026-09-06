@@ -40,14 +40,30 @@ void test("prices come from the catalog; shipping and included VAT use integer k
     Math.round((34900 * 20) / 120) + Math.round((7990 * 20) / 120),
   );
   assert.equal(quote([{ productId: "p1", quantity: 5 }]).shipping, 0);
-  assert.equal(
-    checkoutSchema.safeParse({
-      items: [{ productId: "p1", quantity: 1, price: 1 }],
-      address,
-      key: randomUUID(),
-    }).success,
-    false,
-  );
+});
+void test("checkout accepts a complete request but rejects a client-supplied price", () => {
+  const valid = {
+    items: [{ productId: "p1", quantity: 1 }],
+    address,
+    key: randomUUID(),
+    expectedTotal: quote([{ productId: "p1", quantity: 1 }]).total,
+  };
+  assert.equal(checkoutSchema.safeParse(valid).success, true);
+  const tampered = checkoutSchema.safeParse({
+    ...valid,
+    items: [{ ...valid.items[0], price: 1 }],
+  });
+  assert.equal(tampered.success, false);
+  if (!tampered.success) {
+    assert(
+      tampered.error.issues.some(
+        (issue) =>
+          issue.code === "unrecognized_keys" &&
+          issue.keys.includes("price") &&
+          issue.path.join(".") === "items.0",
+      ),
+    );
+  }
 });
 void test("repeated product rows cannot bypass quantity limits", () => {
   assert.throws(() =>

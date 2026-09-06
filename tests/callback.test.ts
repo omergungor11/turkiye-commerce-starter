@@ -69,3 +69,44 @@ test("callback route releases failed reservations only once", async () => {
     assert.equal(await (await notify(o.id, "failed", "0")).text(), "OK");
   assert.equal(products()[0].stock, stock);
 });
+
+test("a valid PayTR signature cannot settle a demo order", async () => {
+  const o = createOrder(
+    [{ productId: "p1", quantity: 1 }],
+    address,
+    "demo-fixture",
+    randomUUID(),
+    "demo",
+  ).order;
+  const stock = products()[0].stock;
+  const response = await notify(o.id, "success", String(o.total));
+  assert.equal(response.status, 409);
+  assert.equal(getOrder(o.id)?.status, "pending");
+  assert.equal(products()[0].stock, stock);
+});
+
+test("callback rejects repeated fields even when the first values have a valid signature", async () => {
+  const o = create();
+  const body = new URLSearchParams({
+    merchant_oid: o.id,
+    status: "success",
+    total_amount: String(o.total),
+    hash: callbackHash(
+      o.id,
+      "success",
+      String(o.total),
+      "fixture-key",
+      "fixture-salt",
+    ),
+  });
+  body.append("total_amount", "1");
+  const response = await POST(
+    new Request("http://localhost/api/paytr/callback", {
+      method: "POST",
+      body,
+    }),
+  );
+  assert.equal(response.status, 400);
+  assert.equal(await response.text(), "Duplicate field");
+  assert.equal(getOrder(o.id)?.status, "pending");
+});
